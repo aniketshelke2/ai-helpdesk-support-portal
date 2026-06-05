@@ -1,0 +1,4 @@
+ID,articleNo,title,content,category_ID,tags,status
+know1111-1111-1111-1111-111111111111,KB-1001,How to fix login issues,Clear browser cache verify correct URL reset password and try incognito mode.,cat11111-1111-1111-1111-111111111111,login,password,browser,PUBLISHED
+know2222-2222-2222-2222-222222222222,KB-1002,How to troubleshoot VPN timeout,Check internet connection restart VPN client verify MFA and try alternate network.,cat44444-4444-4444-4444-444444444444,vpn,network,connectivity,PUBLISHED
+know3333-3333-3333-3333-333333333333,KB-1003,Improve laptop performance,Restart laptop remove unwanted startup apps check disk space and install updates.,cat22222-2222-2222-2222-222222222222,laptop,performance,hardware,PUBLISHED

@@ -1,0 +1,3 @@
+ID,objectType,objectId,action,performedBy_ID,oldValue,newValue,remarks
+log11111-1111-1111-1111-111111111111,TICKET,TKT-1001,CREATED,aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,,OPEN,Ticket created by employee
+log22222-2222-2222-2222-222222222222,TICKET,TKT-1002,STATUS_CHANGED,bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,OPEN,IN_PROGRESS,Support agent started working on ticket

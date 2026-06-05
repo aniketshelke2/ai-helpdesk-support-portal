@@ -1,0 +1,4 @@
+ID,ticketNo,title,description,createdByUser_ID,assignedToUser_ID,category_ID,priority,status,source,dueDate,resolvedAt
+tick1111-1111-1111-1111-111111111111,TKT-1001,Unable to login to company portal,I am unable to login to the company portal after password change.,aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,cat11111-1111-1111-1111-111111111111,HIGH,OPEN,PORTAL,2026-06-10,
+tick2222-2222-2222-2222-222222222222,TKT-1002,Laptop running very slow,My laptop is very slow after recent update and Teams is freezing.,aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,cat22222-2222-2222-2222-222222222222,MEDIUM,IN_PROGRESS,PORTAL,2026-06-12,
+tick3333-3333-3333-3333-333333333333,TKT-1003,VPN not connecting from home,VPN connection is failing with timeout error.,aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,cat44444-4444-4444-4444-444444444444,HIGH,OPEN,EMAIL,2026-06-08,

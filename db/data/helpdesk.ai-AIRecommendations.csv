@@ -1,0 +1,3 @@
+ID,ticket_ID,suggestedCategory_ID,suggestedPriority,suggestedSolution,confidenceScore,recommendationType,status
+aire1111-1111-1111-1111-111111111111,tick1111-1111-1111-1111-111111111111,cat11111-1111-1111-1111-111111111111,HIGH,AI suggests checking browser cache portal URL and account lock status.,91.50,SOLUTION,NEW
+aire2222-2222-2222-2222-222222222222,tick3333-3333-3333-3333-333333333333,cat44444-4444-4444-4444-444444444444,HIGH,AI suggests verifying VPN client MFA internet connection and firewall settings.,88.00,SOLUTION,NEW
