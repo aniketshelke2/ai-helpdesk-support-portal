@@ -11,3 +11,191 @@ service HelpdeskService @(path: '/odata/v4/helpdesk') {
   entity AIRecommendations as projection on db.AIRecommendations;
   entity AuditLogs as projection on db.AuditLogs;
 }
+
+annotate HelpdeskService.Tickets with @(
+  UI: {
+    HeaderInfo: {
+      TypeName: 'Ticket',
+      TypeNamePlural: 'Tickets',
+      Title: {
+        Value: ticketNo
+      },
+      Description: {
+        Value: title
+      }
+    },
+
+    SelectionFields: [
+      ticketNo,
+      priority,
+      status,
+      source
+    ],
+
+    LineItem: [
+      {
+        Value: ticketNo,
+        Label: 'Ticket No'
+      },
+      {
+        Value: title,
+        Label: 'Title'
+      },
+      {
+        Value: priority,
+        Label: 'Priority'
+      },
+      {
+        Value: status,
+        Label: 'Status'
+      },
+      {
+        Value: source,
+        Label: 'Source'
+      },
+      {
+        Value: dueDate,
+        Label: 'Due Date'
+      }
+    ],
+
+    Facets: [
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'Ticket Details',
+        Target: '@UI.FieldGroup#TicketDetails'
+      },
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'Ticket Comments',
+        Target: 'comments/@UI.LineItem'
+      },
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'AI Recommendations',
+        Target: 'aiRecommendations/@UI.LineItem'
+      }
+    ],
+
+    FieldGroup #TicketDetails: {
+      Data: [
+        {
+          Value: ticketNo,
+          Label: 'Ticket No'
+        },
+        {
+          Value: title,
+          Label: 'Title'
+        },
+        {
+          Value: description,
+          Label: 'Description'
+        },
+        {
+          Value: priority,
+          Label: 'Priority'
+        },
+        {
+          Value: status,
+          Label: 'Status'
+        },
+        {
+          Value: source,
+          Label: 'Source'
+        },
+        {
+          Value: dueDate,
+          Label: 'Due Date'
+        },
+        {
+          Value: resolvedAt,
+          Label: 'Resolved At'
+        }
+      ]
+    }
+  }
+);
+
+annotate HelpdeskService.TicketComments with @(
+  UI: {
+    LineItem: [
+      {
+        Value: commentText,
+        Label: 'Comment'
+      },
+      {
+        Value: commentType,
+        Label: 'Comment Type'
+      },
+      {
+        Value: createdAt,
+        Label: 'Created At'
+      },
+      {
+        Value: createdBy,
+        Label: 'Created By'
+      }
+    ]
+  }
+);
+
+annotate HelpdeskService.AIRecommendations with @(
+  UI: {
+    LineItem: [
+      {
+        Value: suggestedPriority,
+        Label: 'Suggested Priority'
+      },
+      {
+        Value: suggestedSolution,
+        Label: 'Suggested Solution'
+      },
+      {
+        Value: confidenceScore,
+        Label: 'Confidence Score'
+      },
+      {
+        Value: recommendationType,
+        Label: 'Recommendation Type'
+      },
+      {
+        Value: status,
+        Label: 'Status'
+      }
+    ]
+  }
+);
+
+annotate HelpdeskService.KnowledgeArticles with @(
+  UI: {
+    HeaderInfo: {
+      TypeName: 'Knowledge Article',
+      TypeNamePlural: 'Knowledge Articles',
+      Title: {
+        Value: articleNo
+      },
+      Description: {
+        Value: title
+      }
+    },
+
+    LineItem: [
+      {
+        Value: articleNo,
+        Label: 'Article No'
+      },
+      {
+        Value: title,
+        Label: 'Title'
+      },
+      {
+        Value: tags,
+        Label: 'Tags'
+      },
+      {
+        Value: status,
+        Label: 'Status'
+      }
+    ]
+  }
+);

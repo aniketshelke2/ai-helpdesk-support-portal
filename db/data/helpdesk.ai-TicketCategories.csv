@@ -1,5 +1,5 @@
 ID,name,description,defaultPriority
-cat11111-1111-1111-1111-111111111111,Login Issue,User unable to login or password-related issue,HIGH
-cat22222-2222-2222-2222-222222222222,Hardware Issue,Laptop desktop printer or device issue,MEDIUM
-cat33333-3333-3333-3333-333333333333,Software Issue,Application installation or software error,MEDIUM
-cat44444-4444-4444-4444-444444444444,Network Issue,Internet VPN or connectivity issue,HIGH
+10000000-0000-0000-0000-000000000001,Login Issue,User unable to login or password-related issue,HIGH
+10000000-0000-0000-0000-000000000002,Hardware Issue,Laptop desktop printer or device issue,MEDIUM
+10000000-0000-0000-0000-000000000003,Software Issue,Application installation or software error,MEDIUM
+10000000-0000-0000-0000-000000000004,Network Issue,Internet VPN or connectivity issue,HIGH
