@@ -5,7 +5,11 @@ service HelpdeskService @(path: '/odata/v4/helpdesk') {
   entity Users as projection on db.Users;
   entity Departments as projection on db.Departments;
   entity TicketCategories as projection on db.TicketCategories;
-  entity Tickets as projection on db.Tickets;
+  entity Tickets as projection on db.Tickets actions {
+  action startProgress() returns Tickets;
+  action resolveTicket() returns Tickets;
+  action reopenTicket() returns Tickets;
+};
   entity TicketComments as projection on db.TicketComments;
   entity KnowledgeArticles as projection on db.KnowledgeArticles;
   entity AIRecommendations as projection on db.AIRecommendations;
@@ -74,6 +78,24 @@ annotate HelpdeskService.Tickets with @(
         $Type: 'UI.ReferenceFacet',
         Label: 'AI Recommendations',
         Target: 'aiRecommendations/@UI.LineItem'
+      }
+    ],
+
+    Identification: [
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.startProgress',
+        Label: 'Start Progress'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.resolveTicket',
+        Label: 'Resolve Ticket'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.reopenTicket',
+        Label: 'Reopen Ticket'
       }
     ],
 
