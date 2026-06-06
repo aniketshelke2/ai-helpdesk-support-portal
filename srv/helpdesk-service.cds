@@ -6,13 +6,17 @@ service HelpdeskService @(path: '/odata/v4/helpdesk') {
   entity Departments as projection on db.Departments;
   entity TicketCategories as projection on db.TicketCategories;
   entity Tickets as projection on db.Tickets actions {
-  action startProgress() returns Tickets;
-  action resolveTicket() returns Tickets;
-  action reopenTicket() returns Tickets;
-};
+    action startProgress() returns Tickets;
+    action resolveTicket() returns Tickets;
+    action reopenTicket() returns Tickets;
+    action generateAIRecommendation() returns AIRecommendations;
+  };
   entity TicketComments as projection on db.TicketComments;
   entity KnowledgeArticles as projection on db.KnowledgeArticles;
-  entity AIRecommendations as projection on db.AIRecommendations;
+  entity AIRecommendations as projection on db.AIRecommendations actions {
+  action acceptRecommendation() returns AIRecommendations;
+  action rejectRecommendation() returns AIRecommendations;
+};
   entity AuditLogs as projection on db.AuditLogs;
 }
 
@@ -96,6 +100,16 @@ annotate HelpdeskService.Tickets with @(
         $Type: 'UI.DataFieldForAction',
         Action: 'HelpdeskService.reopenTicket',
         Label: 'Reopen Ticket'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.generateAIRecommendation',
+        Label: 'Generate AI Recommendation'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.generateAIRecommendation',
+        Label: 'Generate AI Recommendation'
       }
     ],
 
@@ -183,6 +197,16 @@ annotate HelpdeskService.AIRecommendations with @(
       {
         Value: status,
         Label: 'Status'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.acceptRecommendation',
+        Label: 'Accept'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.rejectRecommendation',
+        Label: 'Reject'
       }
     ]
   }
