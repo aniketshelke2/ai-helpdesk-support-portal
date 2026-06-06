@@ -46,6 +46,9 @@ entity Tickets : cuid, managed {
 
   aiRecommendations : Composition of many AIRecommendations
                         on aiRecommendations.ticket = $self;
+
+    auditLogs : Composition of many AuditLogs
+                on auditLogs.ticket = $self;
 }
 
 entity TicketComments : cuid, managed {
@@ -75,6 +78,7 @@ entity AIRecommendations : cuid, managed {
 }
 
 entity AuditLogs : cuid, managed {
+  ticket        : Association to Tickets;
   objectType    : String(50);   // TICKET, COMMENT, AI_RECOMMENDATION
   objectId      : String(50);
   action        : String(80);   // CREATED, ASSIGNED, STATUS_CHANGED, RESOLVED

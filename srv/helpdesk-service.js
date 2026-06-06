@@ -1,7 +1,32 @@
 const cds = require('@sap/cds');
 
 module.exports = cds.service.impl(async function () {
-  const { Tickets, TicketCategories, AIRecommendations, AuditLogs } = this.entities;
+  const {
+    Tickets,
+    TicketCategories,
+    AIRecommendations,
+    AuditLogs
+  } = this.entities;
+
+  async function addAuditLog({
+    ticketID,
+    ticketNo,
+    objectType = 'TICKET',
+    action,
+    oldValue = '',
+    newValue = '',
+    remarks = ''
+  }) {
+    await INSERT.into(AuditLogs).entries({
+      ticket_ID: ticketID,
+      objectType,
+      objectId: ticketNo || ticketID,
+      action,
+      oldValue,
+      newValue,
+      remarks
+    });
+  }
 
   this.on('startProgress', 'Tickets', async (req) => {
     const ID = req.params[0].ID;
@@ -13,16 +38,19 @@ module.exports = cds.service.impl(async function () {
     }
 
     if (ticket.status !== 'OPEN' && ticket.status !== 'REOPENED') {
-      return req.error(400, `Only OPEN or REOPENED tickets can be moved to IN_PROGRESS. Current status: ${ticket.status}`);
+      return req.error(
+        400,
+        `Only OPEN or REOPENED tickets can be moved to IN_PROGRESS. Current status: ${ticket.status}`
+      );
     }
 
     await UPDATE(Tickets)
       .set({ status: 'IN_PROGRESS' })
       .where({ ID });
 
-    await INSERT.into(AuditLogs).entries({
-      objectType: 'TICKET',
-      objectId: ticket.ticketNo,
+    await addAuditLog({
+      ticketID: ID,
+      ticketNo: ticket.ticketNo,
       action: 'STATUS_CHANGED',
       oldValue: ticket.status,
       newValue: 'IN_PROGRESS',
@@ -42,7 +70,10 @@ module.exports = cds.service.impl(async function () {
     }
 
     if (ticket.status !== 'IN_PROGRESS') {
-      return req.error(400, `Only IN_PROGRESS tickets can be resolved. Current status: ${ticket.status}`);
+      return req.error(
+        400,
+        `Only IN_PROGRESS tickets can be resolved. Current status: ${ticket.status}`
+      );
     }
 
     await UPDATE(Tickets)
@@ -52,9 +83,9 @@ module.exports = cds.service.impl(async function () {
       })
       .where({ ID });
 
-    await INSERT.into(AuditLogs).entries({
-      objectType: 'TICKET',
-      objectId: ticket.ticketNo,
+    await addAuditLog({
+      ticketID: ID,
+      ticketNo: ticket.ticketNo,
       action: 'RESOLVED',
       oldValue: ticket.status,
       newValue: 'RESOLVED',
@@ -74,7 +105,10 @@ module.exports = cds.service.impl(async function () {
     }
 
     if (ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED') {
-      return req.error(400, `Only RESOLVED or CLOSED tickets can be reopened. Current status: ${ticket.status}`);
+      return req.error(
+        400,
+        `Only RESOLVED or CLOSED tickets can be reopened. Current status: ${ticket.status}`
+      );
     }
 
     await UPDATE(Tickets)
@@ -84,9 +118,9 @@ module.exports = cds.service.impl(async function () {
       })
       .where({ ID });
 
-    await INSERT.into(AuditLogs).entries({
-      objectType: 'TICKET',
-      objectId: ticket.ticketNo,
+    await addAuditLog({
+      ticketID: ID,
+      ticketNo: ticket.ticketNo,
       action: 'REOPENED',
       oldValue: ticket.status,
       newValue: 'REOPENED',
@@ -96,7 +130,7 @@ module.exports = cds.service.impl(async function () {
     return await SELECT.one.from(Tickets).where({ ID });
   });
 
-    this.on('generateAIRecommendation', 'Tickets', async (req) => {
+  this.on('generateAIRecommendation', 'Tickets', async (req) => {
     const ID = req.params[0].ID;
 
     const ticket = await SELECT.one.from(Tickets).where({ ID });
@@ -105,27 +139,52 @@ module.exports = cds.service.impl(async function () {
       return req.error(404, 'Ticket not found');
     }
 
+    if (ticket.status === 'CLOSED') {
+      return req.error(400, 'AI recommendation cannot be generated for CLOSED tickets.');
+    }
+
+    const existingNewRecommendation = await SELECT.one
+      .from(AIRecommendations)
+      .where({
+        ticket_ID: ID,
+        recommendationType: 'SOLUTION',
+        status: 'NEW'
+      });
+
+    if (existingNewRecommendation) {
+      return existingNewRecommendation;
+    }
+
     const text = `${ticket.title || ''} ${ticket.description || ''}`.toLowerCase();
 
     let categoryName = 'Software Issue';
     let priority = 'MEDIUM';
-    let solution = 'AI suggests checking the application logs, restarting the application, and contacting support if the issue continues.';
+    let solution =
+      'AI suggests checking the application logs, restarting the application, and contacting support if the issue continues.';
     let confidence = 75.00;
 
     if (text.includes('login') || text.includes('password') || text.includes('portal')) {
       categoryName = 'Login Issue';
       priority = 'HIGH';
-      solution = 'AI suggests clearing browser cache, verifying the portal URL, checking account lock status, and resetting the password if needed.';
+      solution =
+        'AI suggests clearing browser cache, verifying the portal URL, checking account lock status, and resetting the password if needed.';
       confidence = 91.50;
     } else if (text.includes('vpn') || text.includes('network') || text.includes('internet')) {
       categoryName = 'Network Issue';
       priority = 'HIGH';
-      solution = 'AI suggests checking internet connectivity, restarting VPN client, verifying MFA, and testing with an alternate network.';
+      solution =
+        'AI suggests checking internet connectivity, restarting VPN client, verifying MFA, and testing with an alternate network.';
       confidence = 88.00;
-    } else if (text.includes('laptop') || text.includes('slow') || text.includes('printer') || text.includes('hardware')) {
+    } else if (
+      text.includes('laptop') ||
+      text.includes('slow') ||
+      text.includes('printer') ||
+      text.includes('hardware')
+    ) {
       categoryName = 'Hardware Issue';
       priority = 'MEDIUM';
-      solution = 'AI suggests restarting the device, checking disk space, disabling unwanted startup apps, and running hardware diagnostics.';
+      solution =
+        'AI suggests restarting the device, checking disk space, disabling unwanted startup apps, and running hardware diagnostics.';
       confidence = 84.00;
     }
 
@@ -147,138 +206,205 @@ module.exports = cds.service.impl(async function () {
 
     await INSERT.into(AIRecommendations).entries(recommendation);
 
-    await INSERT.into(AuditLogs).entries({
+    await addAuditLog({
+      ticketID: ID,
+      ticketNo: ticket.ticketNo,
       objectType: 'AI_RECOMMENDATION',
-      objectId: ticket.ticketNo,
       action: 'GENERATED',
       oldValue: '',
       newValue: priority,
       remarks: `Mock AI recommendation generated for ${categoryName}`
     });
 
-    return await SELECT.one.from(AIRecommendations)
+    return await SELECT.one
+      .from(AIRecommendations)
       .where({
         ticket_ID: ID,
+        recommendationType: 'SOLUTION',
+        status: 'NEW'
+      })
+      .orderBy('createdAt desc');
+  });
+
+  this.on('generateAISummary', 'Tickets', async (req) => {
+    const ID = req.params[0].ID;
+
+    const ticket = await SELECT.one.from(Tickets).where({ ID });
+
+    if (!ticket) {
+      return req.error(404, 'Ticket not found');
+    }
+
+    const existingNewSummary = await SELECT.one
+      .from(AIRecommendations)
+      .where({
+        ticket_ID: ID,
+        recommendationType: 'SUMMARY',
+        status: 'NEW'
+      });
+
+    if (existingNewSummary) {
+      return existingNewSummary;
+    }
+
+    const comments = await SELECT.from('HelpdeskService.TicketComments')
+      .where({
+        ticket_ID: ID
+      })
+      .orderBy('createdAt asc');
+
+    let summaryText = `AI Summary: Ticket ${ticket.ticketNo} is about "${ticket.title}". Current status is ${ticket.status}, priority is ${ticket.priority}.`;
+
+    if (comments && comments.length > 0) {
+      summaryText += ` There are ${comments.length} comment(s). Latest update: ${comments[comments.length - 1].commentText}`;
+    } else {
+      summaryText += ' No ticket comments are available yet.';
+    }
+
+    await INSERT.into(AIRecommendations).entries({
+      ticket_ID: ID,
+      suggestedPriority: ticket.priority,
+      suggestedSolution: summaryText,
+      confidenceScore: 82.00,
+      recommendationType: 'SUMMARY',
+      status: 'NEW'
+    });
+
+    await addAuditLog({
+      ticketID: ID,
+      ticketNo: ticket.ticketNo,
+      objectType: 'AI_RECOMMENDATION',
+      action: 'SUMMARY_GENERATED',
+      oldValue: '',
+      newValue: 'SUMMARY',
+      remarks: 'Mock AI summary generated for ticket'
+    });
+
+    return await SELECT.one
+      .from(AIRecommendations)
+      .where({
+        ticket_ID: ID,
+        recommendationType: 'SUMMARY',
         status: 'NEW'
       })
       .orderBy('createdAt desc');
   });
 
   this.on('acceptRecommendation', 'AIRecommendations', async (req) => {
-  const recommendationID = req.params[req.params.length - 1].ID;
+    const recommendationID = req.params[req.params.length - 1].ID;
 
-  if (!recommendationID) {
-    return req.error(400, 'AI recommendation ID not found in request.');
-  }
+    if (!recommendationID) {
+      return req.error(400, 'AI recommendation ID not found in request.');
+    }
 
-  const recommendation = await SELECT.one.from(AIRecommendations).where({
-    ID: recommendationID
-  });
+    const recommendation = await SELECT.one.from(AIRecommendations).where({
+      ID: recommendationID
+    });
 
-  if (!recommendation) {
-    return req.error(404, 'AI recommendation not found');
-  }
+    if (!recommendation) {
+      return req.error(404, 'AI recommendation not found');
+    }
 
-  if (recommendation.status === 'ACCEPTED') {
-    return req.error(400, 'This recommendation is already accepted.');
-  }
+    if (recommendation.status === 'ACCEPTED') {
+      return req.error(400, 'This recommendation is already accepted.');
+    }
 
-  if (recommendation.status === 'REJECTED') {
-    return req.error(400, 'Rejected recommendation cannot be accepted.');
-  }
+    if (recommendation.status === 'REJECTED') {
+      return req.error(400, 'Rejected recommendation cannot be accepted.');
+    }
 
-  const ticket = await SELECT.one.from(Tickets).where({
-    ID: recommendation.ticket_ID
-  });
-
-  if (!ticket) {
-    return req.error(404, 'Related ticket not found');
-  }
-
-  await UPDATE(Tickets)
-    .set({
-      priority: recommendation.suggestedPriority,
-      category_ID: recommendation.suggestedCategory_ID
-    })
-    .where({
+    const ticket = await SELECT.one.from(Tickets).where({
       ID: recommendation.ticket_ID
     });
 
-  await UPDATE(AIRecommendations)
-    .set({
-      status: 'ACCEPTED'
-    })
-    .where({
+    if (!ticket) {
+      return req.error(404, 'Related ticket not found');
+    }
+
+    if (recommendation.recommendationType === 'SOLUTION') {
+      await UPDATE(Tickets)
+        .set({
+          priority: recommendation.suggestedPriority,
+          category_ID: recommendation.suggestedCategory_ID
+        })
+        .where({
+          ID: recommendation.ticket_ID
+        });
+    }
+
+    await UPDATE(AIRecommendations)
+      .set({
+        status: 'ACCEPTED'
+      })
+      .where({
+        ID: recommendationID
+      });
+
+    await addAuditLog({
+      ticketID: recommendation.ticket_ID,
+      ticketNo: ticket.ticketNo,
+      objectType: 'AI_RECOMMENDATION',
+      action: 'ACCEPTED',
+      oldValue: ticket.priority,
+      newValue: recommendation.suggestedPriority,
+      remarks:
+        recommendation.recommendationType === 'SOLUTION'
+          ? 'AI recommendation accepted and ticket priority/category updated'
+          : 'AI summary accepted'
+    });
+
+    return await SELECT.one.from(AIRecommendations).where({
+      ID: recommendationID
+    });
+  });
+
+  this.on('rejectRecommendation', 'AIRecommendations', async (req) => {
+    const recommendationID = req.params[req.params.length - 1].ID;
+
+    if (!recommendationID) {
+      return req.error(400, 'AI recommendation ID not found in request.');
+    }
+
+    const recommendation = await SELECT.one.from(AIRecommendations).where({
       ID: recommendationID
     });
 
-  await INSERT.into(AuditLogs).entries({
-    objectType: 'AI_RECOMMENDATION',
-    objectId: ticket.ticketNo,
-    action: 'ACCEPTED',
-    oldValue: ticket.priority,
-    newValue: recommendation.suggestedPriority,
-    remarks: 'AI recommendation accepted and ticket priority/category updated'
-  });
+    if (!recommendation) {
+      return req.error(404, 'AI recommendation not found');
+    }
 
-  return await SELECT.one.from(AIRecommendations).where({
-    ID: recommendationID
-  });
-});
+    if (recommendation.status === 'ACCEPTED') {
+      return req.error(400, 'Accepted recommendation cannot be rejected.');
+    }
 
+    if (recommendation.status === 'REJECTED') {
+      return req.error(400, 'This recommendation is already rejected.');
+    }
 
+    await UPDATE(AIRecommendations)
+      .set({
+        status: 'REJECTED'
+      })
+      .where({
+        ID: recommendationID
+      });
 
-
-this.on('rejectRecommendation', 'AIRecommendations', async (req) => {
-  const recommendationID = req.params[req.params.length - 1].ID;
-
-  if (!recommendationID) {
-    return req.error(400, 'AI recommendation ID not found in request.');
-  }
-
-  const recommendation = await SELECT.one.from(AIRecommendations).where({
-    ID: recommendationID
-  });
-
-  if (!recommendation) {
-    return req.error(404, 'AI recommendation not found');
-  }
-
-  if (recommendation.status === 'ACCEPTED') {
-    return req.error(400, 'Accepted recommendation cannot be rejected.');
-  }
-
-  if (recommendation.status === 'REJECTED') {
-    return req.error(400, 'This recommendation is already rejected.');
-  }
-
-  await UPDATE(AIRecommendations)
-    .set({
-      status: 'REJECTED'
-    })
-    .where({
-      ID: recommendationID
+    const ticket = await SELECT.one.from(Tickets).where({
+      ID: recommendation.ticket_ID
     });
 
-  const ticket = await SELECT.one.from(Tickets).where({
-    ID: recommendation.ticket_ID
+    await addAuditLog({
+      ticketID: recommendation.ticket_ID,
+      ticketNo: ticket ? ticket.ticketNo : recommendation.ticket_ID,
+      objectType: 'AI_RECOMMENDATION',
+      action: 'REJECTED',
+      oldValue: recommendation.status,
+      newValue: 'REJECTED',
+      remarks: 'AI recommendation rejected by support agent'
+    });
+
+    return await SELECT.one.from(AIRecommendations).where({
+      ID: recommendationID
+    });
   });
-
-  await INSERT.into(AuditLogs).entries({
-    objectType: 'AI_RECOMMENDATION',
-    objectId: ticket ? ticket.ticketNo : recommendation.ticket_ID,
-    action: 'REJECTED',
-    oldValue: recommendation.status,
-    newValue: 'REJECTED',
-    remarks: 'AI recommendation rejected by support agent'
-  });
-
-  return await SELECT.one.from(AIRecommendations).where({
-    ID: recommendationID
-  });
-});
-
-
-
-
 });

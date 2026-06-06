@@ -10,6 +10,7 @@ service HelpdeskService @(path: '/odata/v4/helpdesk') {
     action resolveTicket() returns Tickets;
     action reopenTicket() returns Tickets;
     action generateAIRecommendation() returns AIRecommendations;
+    action generateAISummary() returns AIRecommendations;
   };
   entity TicketComments as projection on db.TicketComments;
   entity KnowledgeArticles as projection on db.KnowledgeArticles;
@@ -67,23 +68,28 @@ annotate HelpdeskService.Tickets with @(
       }
     ],
 
-    Facets: [
-      {
-        $Type: 'UI.ReferenceFacet',
-        Label: 'Ticket Details',
-        Target: '@UI.FieldGroup#TicketDetails'
-      },
-      {
-        $Type: 'UI.ReferenceFacet',
-        Label: 'Ticket Comments',
-        Target: 'comments/@UI.LineItem'
-      },
-      {
-        $Type: 'UI.ReferenceFacet',
-        Label: 'AI Recommendations',
-        Target: 'aiRecommendations/@UI.LineItem'
-      }
-    ],
+      Facets: [
+        {
+          $Type: 'UI.ReferenceFacet',
+          Label: 'Ticket Details',
+          Target: '@UI.FieldGroup#TicketDetails'
+        },
+        {
+          $Type: 'UI.ReferenceFacet',
+          Label: 'Ticket Comments',
+          Target: 'comments/@UI.LineItem'
+        },
+        {
+          $Type: 'UI.ReferenceFacet',
+          Label: 'AI Recommendations',
+          Target: 'aiRecommendations/@UI.LineItem'
+        },
+        {
+          $Type: 'UI.ReferenceFacet',
+          Label: 'Audit Logs',
+          Target: 'auditLogs/@UI.LineItem'
+        }
+      ],
 
     Identification: [
       {
@@ -110,6 +116,11 @@ annotate HelpdeskService.Tickets with @(
         $Type: 'UI.DataFieldForAction',
         Action: 'HelpdeskService.generateAIRecommendation',
         Label: 'Generate AI Recommendation'
+      },
+      {
+        $Type: 'UI.DataFieldForAction',
+        Action: 'HelpdeskService.generateAISummary',
+        Label: 'Generate AI Summary'
       }
     ],
 
@@ -241,6 +252,38 @@ annotate HelpdeskService.KnowledgeArticles with @(
       {
         Value: status,
         Label: 'Status'
+      }
+    ]
+  }
+);
+
+
+annotate HelpdeskService.AuditLogs with @(
+  UI: {
+    LineItem: [
+      {
+        Value: action,
+        Label: 'Action'
+      },
+      {
+        Value: oldValue,
+        Label: 'Old Value'
+      },
+      {
+        Value: newValue,
+        Label: 'New Value'
+      },
+      {
+        Value: remarks,
+        Label: 'Remarks'
+      },
+      {
+        Value: createdAt,
+        Label: 'Created At'
+      },
+      {
+        Value: createdBy,
+        Label: 'Created By'
       }
     ]
   }
