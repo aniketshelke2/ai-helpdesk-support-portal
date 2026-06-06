@@ -2,11 +2,12 @@ const cds = require('@sap/cds');
 
 module.exports = cds.service.impl(async function () {
   const {
-    Tickets,
-    TicketCategories,
-    AIRecommendations,
-    AuditLogs
-  } = this.entities;
+  Users,
+  Tickets,
+  TicketCategories,
+  AIRecommendations,
+  AuditLogs
+} = this.entities;
 
   async function addAuditLog({
     ticketID,
@@ -28,7 +29,49 @@ module.exports = cds.service.impl(async function () {
     });
   }
 
+
+  function hasAnyRole(req, roles) {
+    return roles.some((role) => req.user.is(role));
+  }
+
+  function requireAnyRole(req, roles, actionName) {
+    if (!hasAnyRole(req, roles)) {
+      return req.reject(
+        403,
+        `You are not authorized to perform action: ${actionName}`
+      );
+    }
+  }
+
+
+  this.before('READ', 'Tickets', async (req) => {
+      if (req.user.is('Employee')) {
+        const appUser = await getCurrentAppUser(req);
+
+        if (!appUser) {
+          return req.reject(403, 'Application user mapping not found.');
+        }
+
+        req.query.where({
+          createdByUser_ID: appUser.ID
+        });
+      }
+    });
+
+this.before('READ', 'AuditLogs', async (req) => {
+  if (!hasAnyRole(req, ['Manager', 'Admin'])) {
+    return req.reject(403, 'Only Manager or Admin can view audit logs.');
+  }
+});
+
+  async function getCurrentAppUser(req) {
+    return await SELECT.one.from(Users).where({
+      loginId: req.user.id
+    });
+  }
+
   this.on('startProgress', 'Tickets', async (req) => {
+    requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Start Progress');
     const ID = req.params[0].ID;
 
     const ticket = await SELECT.one.from(Tickets).where({ ID });
@@ -61,6 +104,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('resolveTicket', 'Tickets', async (req) => {
+    requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Resolve Ticket');
     const ID = req.params[0].ID;
 
     const ticket = await SELECT.one.from(Tickets).where({ ID });
@@ -96,6 +140,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('reopenTicket', 'Tickets', async (req) => {
+    requireAnyRole(req, ['Employee', 'SupportAgent', 'Manager', 'Admin'], 'Reopen Ticket');
     const ID = req.params[0].ID;
 
     const ticket = await SELECT.one.from(Tickets).where({ ID });
@@ -131,6 +176,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('generateAIRecommendation', 'Tickets', async (req) => {
+    requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Generate AI Recommendation');
     const ID = req.params[0].ID;
 
     const ticket = await SELECT.one.from(Tickets).where({ ID });
@@ -227,6 +273,8 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('generateAISummary', 'Tickets', async (req) => {
+    requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Generate AI Summary');
+
     const ID = req.params[0].ID;
 
     const ticket = await SELECT.one.from(Tickets).where({ ID });
@@ -291,6 +339,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('acceptRecommendation', 'AIRecommendations', async (req) => {
+    requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Accept AI Recommendation');
     const recommendationID = req.params[req.params.length - 1].ID;
 
     if (!recommendationID) {
@@ -359,6 +408,7 @@ module.exports = cds.service.impl(async function () {
   });
 
   this.on('rejectRecommendation', 'AIRecommendations', async (req) => {
+    requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Reject AI Recommendation');
     const recommendationID = req.params[req.params.length - 1].ID;
 
     if (!recommendationID) {

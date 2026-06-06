@@ -11,6 +11,7 @@ entity Users : cuid, managed {
   role         : String(30);    // EMPLOYEE, SUPPORT_AGENT, MANAGER, ADMIN
   department   : Association to Departments;
   status       : String(20) default 'ACTIVE';
+  loginId      : String(60);
 }
 
 entity Departments : cuid, managed {

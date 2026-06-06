@@ -1,5 +1,5 @@
-ID,userName,email,role,department_ID,status
-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,Aniket Shelke,aniket@company.com,EMPLOYEE,11111111-1111-1111-1111-111111111111,ACTIVE
-bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,Riya Sharma,riya.support@company.com,SUPPORT_AGENT,11111111-1111-1111-1111-111111111111,ACTIVE
-cccccccc-cccc-cccc-cccc-cccccccccccc,Amit Patil,amit.manager@company.com,MANAGER,11111111-1111-1111-1111-111111111111,ACTIVE
-dddddddd-dddd-dddd-dddd-dddddddddddd,Admin User,admin@company.com,ADMIN,44444444-4444-4444-4444-444444444444,ACTIVE
+ID,loginId,userName,email,role,department_ID,status
+aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,employee1,Aniket Shelke,aniket@company.com,EMPLOYEE,11111111-1111-1111-1111-111111111111,ACTIVE
+bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb,agent1,Riya Sharma,riya.support@company.com,SUPPORT_AGENT,11111111-1111-1111-1111-111111111111,ACTIVE
+cccccccc-cccc-cccc-cccc-cccccccccccc,manager1,Amit Patil,amit.manager@company.com,MANAGER,11111111-1111-1111-1111-111111111111,ACTIVE
+dddddddd-dddd-dddd-dddd-dddddddddddd,admin,Admin User,admin@company.com,ADMIN,44444444-4444-4444-4444-444444444444,ACTIVE

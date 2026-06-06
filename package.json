@@ -19,5 +19,33 @@
   ],
   "sapux": [
     "app/tickets"
-  ]
+  ],
+  "cds": {
+  "requires": {
+    "db": {
+      "kind": "sqlite"
+    },
+    "auth": {
+      "kind": "mocked",
+      "users": {
+        "employee1": {
+          "password": "pass",
+          "roles": ["Employee"]
+        },
+        "agent1": {
+            "password": "pass",
+            "roles": ["SupportAgent"]
+          },
+          "manager1": {
+            "password": "pass",
+            "roles": ["Manager"]
+          },
+          "admin": {
+            "password": "pass",
+            "roles": ["Admin"]
+          }
+        }
+      }
+    }
+  }
 }
