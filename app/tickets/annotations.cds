@@ -85,3 +85,32 @@ annotate service.Tickets with {
     }
 };
 
+
+annotate HelpdeskService.AuditLogs with @(
+    UI.LineItem : [
+        {
+            Value : action,
+            Label : 'Action'
+        },
+        {
+            Value : oldValue,
+            Label : 'Old Value'
+        },
+        {
+            Value : newValue,
+            Label : 'New Value'
+        },
+        {
+            Value : remarks,
+            Label : 'Remarks'
+        },
+        {
+            Value : createdAt,
+            Label : 'Created At'
+        },
+        {
+            Value : createdBy,
+            Label : 'Created By'
+        }
+    ]
+);
