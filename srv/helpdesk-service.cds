@@ -6,19 +6,64 @@ service HelpdeskService @(path: '/odata/v4/helpdesk') {
   entity Users as projection on db.Users;
   entity Departments as projection on db.Departments;
   entity TicketCategories as projection on db.TicketCategories;
-  entity Tickets as projection on db.Tickets actions {
-    action startProgress() returns Tickets;
-    action resolveTicket() returns Tickets;
-    action reopenTicket() returns Tickets;
-    action generateAIRecommendation() returns AIRecommendations;
-    action generateAISummary() returns AIRecommendations;
-  };
+
+  @restrict: [
+  {
+    grant: 'READ',
+    to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+  },
+  {
+    grant: ['CREATE'],
+    to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+  },
+  {
+    grant: ['UPDATE', 'DELETE'],
+    to: ['SupportAgent', 'Manager', 'Admin']
+  },
+  {
+    grant: ['startProgress', 'resolveTicket', 'generateAIRecommendation', 'generateAISummary'],
+    to: ['SupportAgent', 'Manager', 'Admin']
+  },
+  {
+    grant: ['reopenTicket'],
+    to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+  }
+]
+entity Tickets as projection on db.Tickets actions {
+  action startProgress() returns Tickets;
+  action resolveTicket() returns Tickets;
+  action reopenTicket() returns Tickets;
+  action generateAIRecommendation() returns AIRecommendations;
+  action generateAISummary() returns AIRecommendations;
+};
+
   entity TicketComments as projection on db.TicketComments;
   entity KnowledgeArticles as projection on db.KnowledgeArticles;
+
+    @restrict: [
+    {
+      grant: 'READ',
+      to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+    },
+    {
+      grant: ['acceptRecommendation', 'rejectRecommendation'],
+      to: ['SupportAgent', 'Manager', 'Admin']
+    }
+  ]
   entity AIRecommendations as projection on db.AIRecommendations actions {
+
+  
+
   action acceptRecommendation() returns AIRecommendations;
   action rejectRecommendation() returns AIRecommendations;
 };
+
+  @restrict: [
+    {
+      grant: 'READ',
+      to: ['Manager', 'Admin']
+    }
+  ]
   entity AuditLogs as projection on db.AuditLogs;
 }
 
