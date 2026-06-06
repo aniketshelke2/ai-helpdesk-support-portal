@@ -1,46 +1,120 @@
 using { helpdesk.ai as db } from '../db/schema';
 
-@requires: 'authenticated-user'
 service HelpdeskService @(path: '/odata/v4/helpdesk') {
+
+  type CurrentUserInfo {
+  userId         : String;
+  isEmployee    : Boolean;
+  isSupportAgent: Boolean;
+  isManager     : Boolean;
+  isAdmin       : Boolean;
+}
+
+
+
+
+
+
+
+
+
+
+annotate HelpdeskService.Tickets with actions {
+  generateAIRecommendation @Common.SideEffects: {
+    TargetEntities: [
+      aiRecommendations,
+      auditLogs
+    ]
+  };
+
+  generateAISummary @Common.SideEffects: {
+    TargetEntities: [
+      aiRecommendations,
+      auditLogs
+    ]
+  };
+
+  startProgress @Common.SideEffects: {
+    TargetEntities: [
+      auditLogs
+    ],
+    TargetProperties: [
+      status,
+      resolvedAt
+    ]
+  };
+
+  resolveTicket @Common.SideEffects: {
+    TargetEntities: [
+      auditLogs
+    ],
+    TargetProperties: [
+      status,
+      resolvedAt
+    ]
+  };
+
+  reopenTicket @Common.SideEffects: {
+    TargetEntities: [
+      auditLogs
+    ],
+    TargetProperties: [
+      status,
+      resolvedAt
+    ]
+  };
+};
+
+
+
+
+
+
+
+
+
+
+function getCurrentUserInfo() returns CurrentUserInfo;
 
   entity Users as projection on db.Users;
   entity Departments as projection on db.Departments;
   entity TicketCategories as projection on db.TicketCategories;
 
   @restrict: [
-  {
-    grant: 'READ',
-    to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
-  },
-  {
-    grant: ['CREATE'],
-    to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
-  },
-  {
-    grant: ['UPDATE', 'DELETE'],
-    to: ['SupportAgent', 'Manager', 'Admin']
-  },
-  {
-    grant: ['startProgress', 'resolveTicket', 'generateAIRecommendation', 'generateAISummary'],
-    to: ['SupportAgent', 'Manager', 'Admin']
-  },
-  {
-    grant: ['reopenTicket'],
-    to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
-  }
-]
-entity Tickets as projection on db.Tickets actions {
-  action startProgress() returns Tickets;
-  action resolveTicket() returns Tickets;
-  action reopenTicket() returns Tickets;
-  action generateAIRecommendation() returns AIRecommendations;
-  action generateAISummary() returns AIRecommendations;
-};
+    {
+      grant: 'READ',
+      to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+    },
+    {
+      grant: 'CREATE',
+      to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+    },
+    {
+      grant: ['UPDATE', 'DELETE'],
+      to: ['SupportAgent', 'Manager', 'Admin']
+    },
+    {
+      grant: ['startProgress', 'resolveTicket', 'generateAIRecommendation', 'generateAISummary'],
+      to: ['SupportAgent', 'Manager', 'Admin']
+    },
+    {
+      grant: 'reopenTicket',
+      to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
+    },
+    
+  ]
+  entity Tickets as projection on db.Tickets actions {
+    action startProgress() returns Tickets;
+    action resolveTicket() returns Tickets;
+    action reopenTicket() returns Tickets;
+    action generateAIRecommendation() returns AIRecommendations;
+    action generateAISummary() returns AIRecommendations;
+  };
 
   entity TicketComments as projection on db.TicketComments;
   entity KnowledgeArticles as projection on db.KnowledgeArticles;
 
-    @restrict: [
+  @restrict: [
     {
       grant: 'READ',
       to: ['Employee', 'SupportAgent', 'Manager', 'Admin']
@@ -51,17 +125,14 @@ entity Tickets as projection on db.Tickets actions {
     }
   ]
   entity AIRecommendations as projection on db.AIRecommendations actions {
-
-  
-
-  action acceptRecommendation() returns AIRecommendations;
-  action rejectRecommendation() returns AIRecommendations;
-};
+    action acceptRecommendation() returns AIRecommendations;
+    action rejectRecommendation() returns AIRecommendations;
+  };
 
   @restrict: [
     {
       grant: 'READ',
-      to: ['Manager', 'Admin']
+      to: ['SupportAgent', 'Manager', 'Admin']
     }
   ]
   entity AuditLogs as projection on db.AuditLogs;
@@ -114,28 +185,28 @@ annotate HelpdeskService.Tickets with @(
       }
     ],
 
-      Facets: [
-        {
-          $Type: 'UI.ReferenceFacet',
-          Label: 'Ticket Details',
-          Target: '@UI.FieldGroup#TicketDetails'
-        },
-        {
-          $Type: 'UI.ReferenceFacet',
-          Label: 'Ticket Comments',
-          Target: 'comments/@UI.LineItem'
-        },
-        {
-          $Type: 'UI.ReferenceFacet',
-          Label: 'AI Recommendations',
-          Target: 'aiRecommendations/@UI.LineItem'
-        },
-        {
-          $Type: 'UI.ReferenceFacet',
-          Label: 'Audit Logs',
-          Target: 'auditLogs/@UI.LineItem'
-        }
-      ],
+    Facets: [
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'Ticket Details',
+        Target: '@UI.FieldGroup#TicketDetails'
+      },
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'Ticket Comments',
+        Target: 'comments/@UI.LineItem'
+      },
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'AI Recommendations',
+        Target: 'aiRecommendations/@UI.LineItem'
+      },
+      {
+        $Type: 'UI.ReferenceFacet',
+        Label: 'Audit Logs',
+        Target: 'auditLogs/@UI.LineItem'
+      }
+    ],
 
     Identification: [
       {
@@ -152,11 +223,6 @@ annotate HelpdeskService.Tickets with @(
         $Type: 'UI.DataFieldForAction',
         Action: 'HelpdeskService.reopenTicket',
         Label: 'Reopen Ticket'
-      },
-      {
-        $Type: 'UI.DataFieldForAction',
-        Action: 'HelpdeskService.generateAIRecommendation',
-        Label: 'Generate AI Recommendation'
       },
       {
         $Type: 'UI.DataFieldForAction',
@@ -269,6 +335,28 @@ annotate HelpdeskService.AIRecommendations with @(
   }
 );
 
+
+
+
+annotate HelpdeskService.AIRecommendations with actions {
+  acceptRecommendation @Common.SideEffects: {
+    TargetProperties: [
+      status
+    ]
+  };
+
+  rejectRecommendation @Common.SideEffects: {
+    TargetProperties: [
+      status
+    ]
+  };
+};
+
+
+
+
+
+
 annotate HelpdeskService.KnowledgeArticles with @(
   UI: {
     HeaderInfo: {
@@ -302,5 +390,3 @@ annotate HelpdeskService.KnowledgeArticles with @(
     ]
   }
 );
-
-

@@ -43,9 +43,22 @@ module.exports = cds.service.impl(async function () {
     }
   }
 
+  this.on('getCurrentUserInfo', async (req) => {
+  return {
+    userId: req.user.id,
+    isEmployee: req.user.is('Employee'),
+    isSupportAgent: req.user.is('SupportAgent'),
+    isManager: req.user.is('Manager'),
+    isAdmin: req.user.is('Admin')
+  };
+});
+
 
   this.before('READ', 'Tickets', async (req) => {
-      if (req.user.is('Employee')) {
+  if (
+    req.user.is('Employee') &&
+    !hasAnyRole(req, ['SupportAgent', 'Manager', 'Admin'])
+  ) {
         const appUser = await getCurrentAppUser(req);
 
         if (!appUser) {
@@ -59,8 +72,8 @@ module.exports = cds.service.impl(async function () {
     });
 
 this.before('READ', 'AuditLogs', async (req) => {
-  if (!hasAnyRole(req, ['Manager', 'Admin'])) {
-    return req.reject(403, 'Only Manager or Admin can view audit logs.');
+  if (!hasAnyRole(req, ['SupportAgent', 'Manager', 'Admin'])) {
+    return req.reject(403, 'Only Support Agent, Manager or Admin can view audit logs.');
   }
 });
 
@@ -176,6 +189,7 @@ this.before('READ', 'AuditLogs', async (req) => {
   });
 
   this.on('generateAIRecommendation', 'Tickets', async (req) => {
+
     requireAnyRole(req, ['SupportAgent', 'Manager', 'Admin'], 'Generate AI Recommendation');
     const ID = req.params[0].ID;
 
@@ -198,6 +212,11 @@ this.before('READ', 'AuditLogs', async (req) => {
       });
 
     if (existingNewRecommendation) {
+      req.warn(
+        409,
+        'A NEW AI recommendation already exists for this ticket. No new recommendation was generated.'
+      );
+
       return existingNewRecommendation;
     }
 

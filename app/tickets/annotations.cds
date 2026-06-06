@@ -86,7 +86,7 @@ annotate service.Tickets with {
 };
 
 
-annotate HelpdeskService.AuditLogs with @(
+annotate service.AuditLogs with @(
     UI.LineItem : [
         {
             Value : action,
