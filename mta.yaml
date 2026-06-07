@@ -25,6 +25,7 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: ai-helpdesk-support-portal-auth
+      - name: ai-helpdesk-support-portal-db
   - name: ai-helpdesk-support-portal
     type: approuter.nodejs
     path: app/router
@@ -45,6 +46,14 @@ modules:
         properties:
           app-protocol: ${protocol}
           app-uri: ${default-uri}
+
+  - name: ai-helpdesk-support-portal-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: ai-helpdesk-support-portal-db
 
 resources:
   - name: ai-helpdesk-support-portal-auth
@@ -81,3 +90,8 @@ resources:
               - '$XSAPPNAME.Admin'
     requires:
       - name: app-api
+  - name: ai-helpdesk-support-portal-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
