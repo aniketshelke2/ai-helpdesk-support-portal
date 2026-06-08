@@ -18,3 +18,4 @@ mta_archives/
 # @cap-js/cds-typer
 @cds-models
 default-env.json
+app/router/resources/
