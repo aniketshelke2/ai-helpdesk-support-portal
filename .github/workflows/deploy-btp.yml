@@ -1,0 +1,65 @@
+name: Deploy AI Helpdesk Portal to SAP BTP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install CAP and MTA build tools
+        run: |
+          npm install -g @sap/cds-dk mbt
+
+      - name: Build CAP production artifacts
+        run: |
+          npx cds build --production
+
+      - name: Build MTAR archive
+        run: |
+          mbt build
+
+      - name: Install Cloud Foundry CLI
+        run: |
+          wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cli.cloudfoundry.org.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cli.cloudfoundry.org.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+          sudo apt-get update
+          sudo apt-get install cf8-cli
+
+      - name: Install MultiApps plugin
+        run: |
+          cf add-plugin-repo CF-Community https://plugins.cloudfoundry.org
+          cf install-plugin -r CF-Community multiapps -f
+
+      - name: Login to SAP BTP Cloud Foundry
+        run: |
+          cf api "${{ secrets.CF_API }}"
+          cf auth "${{ secrets.CF_USERNAME }}" "${{ secrets.CF_PASSWORD }}"
+          cf target -o "${{ secrets.CF_ORG }}" -s "${{ secrets.CF_SPACE }}"
+
+      - name: Deploy MTAR to SAP BTP
+        run: |
+          MTAR_FILE=$(ls mta_archives/*.mtar | head -n 1)
+          echo "Deploying $MTAR_FILE"
+          cf deploy "$MTAR_FILE" -f
+
+      - name: Show deployed apps
+        run: |
+          cf apps
+          cf services
