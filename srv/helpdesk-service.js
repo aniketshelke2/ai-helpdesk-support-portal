@@ -43,6 +43,19 @@ module.exports = cds.service.impl(async function () {
     }
   }
 
+    this.on('getCurrentUserInfo', (req) => {
+    return {
+      userId: req.user.id,
+      isEmployee: req.user.is('Employee'),
+      isSupportAgent: req.user.is('SupportAgent'),
+      isManager: req.user.is('Manager'),
+      isAdmin: req.user.is('Admin')
+    };
+  });
+
+
+
+
   this.on('getCurrentUserInfo', async (req) => {
   return {
     userId: req.user.id,

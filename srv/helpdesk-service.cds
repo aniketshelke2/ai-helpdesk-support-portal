@@ -74,11 +74,20 @@ annotate HelpdeskService.Tickets with actions {
 
 
 
-function getCurrentUserInfo() returns CurrentUserInfo;
 
-  entity Users as projection on db.Users;
-  entity Departments as projection on db.Departments;
-  entity TicketCategories as projection on db.TicketCategories;
+
+ entity Users as projection on db.Users;
+entity Departments as projection on db.Departments;
+entity TicketCategories as projection on db.TicketCategories;
+
+@requires: 'authenticated-user'
+function getCurrentUserInfo() returns {
+  userId         : String;
+  isEmployee     : Boolean;
+  isSupportAgent : Boolean;
+  isManager      : Boolean;
+  isAdmin        : Boolean;
+};
 
   @restrict: [
     {
