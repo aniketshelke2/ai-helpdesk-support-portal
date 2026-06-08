@@ -29,6 +29,18 @@ module.exports = cds.service.impl(async function () {
     });
   }
 
+    async function getLoggedInBusinessUser(req) {
+    const { Users } = cds.entities('helpdesk.ai');
+
+    const loginId = req.user.id;
+
+    const user = await SELECT.one.from(Users).where({
+      email: loginId
+    });
+
+    return user;
+  }
+
 
   function hasAnyRole(req, roles) {
     return roles.some((role) => req.user.is(role));
@@ -54,6 +66,33 @@ module.exports = cds.service.impl(async function () {
   });
 
 
+
+
+    this.before('READ', 'Tickets', async (req) => {
+    if (req.user.is('Admin') || req.user.is('Manager')) {
+      return;
+    }
+
+    const businessUser = await getLoggedInBusinessUser(req);
+
+    if (!businessUser) {
+      req.reject(403, `No application user mapping found for ${req.user.id}`);
+    }
+
+    if (req.user.is('Employee')) {
+      req.query.where({ createdByUser_ID: businessUser.ID });
+      return;
+    }
+
+    if (req.user.is('SupportAgent')) {
+      req.query.where({
+        or: [
+          { assignedToUser_ID: businessUser.ID },
+          { status: 'OPEN' }
+        ]
+      });
+    }
+  });
 
 
   this.on('getCurrentUserInfo', async (req) => {
