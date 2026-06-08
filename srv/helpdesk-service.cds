@@ -19,6 +19,7 @@ service HelpdeskService @(path: '/odata/v4/helpdesk') {
 
 
 
+
 annotate HelpdeskService.Tickets with actions {
   generateAIRecommendation @Common.SideEffects: {
     TargetEntities: [
@@ -79,6 +80,15 @@ annotate HelpdeskService.Tickets with actions {
  entity Users as projection on db.Users;
 entity Departments as projection on db.Departments;
 entity TicketCategories as projection on db.TicketCategories;
+
+
+  @requires: 'Employee'
+  action createTicket(
+    title       : String(120),
+    description : LargeString,
+    category_ID : UUID,
+    priority    : String(20)
+  ) returns Tickets;
 
 @requires: 'authenticated-user'
 function getCurrentUserInfo() returns {
