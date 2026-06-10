@@ -137,7 +137,8 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/Tickets"
+              "contextPath": "/Tickets",
+              "initialLoad": "Enabled"
             }
           }
         }
