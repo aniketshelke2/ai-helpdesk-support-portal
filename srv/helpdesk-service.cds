@@ -99,6 +99,19 @@ function getCurrentUserInfo() returns {
   isAdmin        : Boolean;
 };
 
+  @requires: 'authenticated-user'
+  function getDashboardKpis() returns {
+    totalTickets      : Integer;
+    openTickets       : Integer;
+    inProgressTickets : Integer;
+    resolvedTickets   : Integer;
+    highPriority      : Integer;
+    mediumPriority    : Integer;
+    lowPriority       : Integer;
+    portalTickets     : Integer;
+    emailTickets      : Integer;
+  };
+
   @restrict: [
     {
       grant: 'READ',

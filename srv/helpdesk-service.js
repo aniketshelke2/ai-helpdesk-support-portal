@@ -150,6 +150,35 @@ module.exports = cds.service.impl(async function () {
 
 
 
+    this.on('getDashboardKpis', async (req) => {
+    const { Tickets } = cds.entities('helpdesk.ai');
+    const tx = cds.tx(req);
+
+    const tickets = await tx.run(
+      SELECT.from(Tickets).columns('status', 'priority', 'source')
+    );
+
+    const countBy = (field, value) =>
+      tickets.filter(ticket => ticket[field] === value).length;
+
+    return {
+      totalTickets: tickets.length,
+
+      openTickets: countBy('status', 'OPEN'),
+      inProgressTickets: countBy('status', 'IN_PROGRESS'),
+      resolvedTickets: countBy('status', 'RESOLVED'),
+
+      highPriority: countBy('priority', 'HIGH'),
+      mediumPriority: countBy('priority', 'MEDIUM'),
+      lowPriority: countBy('priority', 'LOW'),
+
+      portalTickets: countBy('source', 'PORTAL'),
+      emailTickets: countBy('source', 'EMAIL')
+    };
+  });
+
+
+
       this.before('CREATE', 'Tickets', async (req) => {
     const { Tickets } = cds.entities('helpdesk.ai');
     const tx = cds.tx(req);
