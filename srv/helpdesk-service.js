@@ -10,6 +10,46 @@ module.exports = cds.service.impl(async function () {
 } = this.entities;
 
 
+    function calculateDueDate(priority) {
+    const days =
+      priority === 'HIGH' ? 2 :
+      priority === 'MEDIUM' ? 5 :
+      7;
+
+    const due = new Date();
+    due.setDate(due.getDate() + days);
+
+    return due.toISOString().slice(0, 10);
+  }
+
+  async function getNextTicketNo(tx, Tickets) {
+    const rows = await tx.run(
+      SELECT.from(Tickets).columns('ticketNo')
+    );
+
+    let maxNo = 1000;
+
+    for (const row of rows) {
+      const num = Number(String(row.ticketNo || '').replace('TKT-', ''));
+      if (!Number.isNaN(num) && num > maxNo) {
+        maxNo = num;
+      }
+    }
+
+    return `TKT-${String(maxNo + 1).padStart(4, '0')}`;
+  }
+
+  async function getLoggedInBusinessUser(req) {
+    const { Users } = cds.entities('helpdesk.ai');
+
+    const loginId = req.user.id;
+
+    return SELECT.one.from(Users).where({
+      email: loginId
+    });
+  }
+
+
   function calculateDueDate(priority) {
     const days =
       priority === 'HIGH' ? 2 :
@@ -108,6 +148,58 @@ module.exports = cds.service.impl(async function () {
   });
 
 
+
+
+      this.before('CREATE', 'Tickets', async (req) => {
+    const { Tickets } = cds.entities('helpdesk.ai');
+    const tx = cds.tx(req);
+
+    const data = req.data;
+
+    if (!data.title || !data.title.trim()) {
+      return req.reject(400, 'Title is mandatory');
+    }
+
+    if (!data.description || !data.description.trim()) {
+      return req.reject(400, 'Description is mandatory');
+    }
+
+    if (!data.priority) {
+      data.priority = 'MEDIUM';
+    }
+
+    data.ID = data.ID || cds.utils.uuid();
+    data.ticketNo = await getNextTicketNo(tx, Tickets);
+    data.status = 'OPEN';
+    data.source = 'PORTAL';
+    data.dueDate = calculateDueDate(data.priority);
+    data.resolvedAt = null;
+
+    const businessUser = await getLoggedInBusinessUser(req);
+
+    if (businessUser && !data.createdByUser_ID) {
+      data.createdByUser_ID = businessUser.ID;
+    }
+
+    delete data.assignedToUser_ID;
+  });
+
+
+    this.after('CREATE', 'Tickets', async (ticket, req) => {
+    const { AuditLogs } = cds.entities('helpdesk.ai');
+    const tx = cds.tx(req);
+
+    await tx.run(
+      INSERT.into(AuditLogs).entries({
+        ID: cds.utils.uuid(),
+        ticket_ID: ticket.ID,
+        action: 'CREATED',
+        oldValue: '',
+        newValue: 'OPEN',
+        remarks: `Ticket created by ${req.user.id}`
+      })
+    );
+  });
 
 
     this.on('createTicket', async (req) => {

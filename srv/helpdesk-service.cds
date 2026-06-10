@@ -158,6 +158,12 @@ function getCurrentUserInfo() returns {
 }
 
 annotate HelpdeskService.Tickets with @(
+  Capabilities.InsertRestrictions: {
+    Insertable: true
+  }
+);
+
+annotate HelpdeskService.Tickets with @(
   UI: {
     HeaderInfo: {
       TypeName: 'Ticket',
@@ -294,6 +300,8 @@ annotate HelpdeskService.Tickets with @(
   }
 );
 
+
+
 annotate HelpdeskService.TicketComments with @(
   UI: {
     LineItem: [
@@ -373,7 +381,21 @@ annotate HelpdeskService.AIRecommendations with actions {
 
 
 
+annotate HelpdeskService.Tickets with {
+  ID              @UI.Hidden;
+  createdAt       @UI.Hidden;
+  createdBy       @UI.Hidden;
+  modifiedAt      @UI.Hidden;
+  modifiedBy      @UI.Hidden;
 
+  ticketNo        @Core.Computed;
+  status          @Core.Computed;
+  source          @Core.Computed;
+  dueDate         @Core.Computed;
+  resolvedAt      @Core.Computed;
+
+  
+};
 
 
 annotate HelpdeskService.KnowledgeArticles with @(
