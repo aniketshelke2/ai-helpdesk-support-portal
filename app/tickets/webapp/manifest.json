@@ -24,6 +24,21 @@
           "odataVersion": "4.0"
         }
       }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "helpdesk-ticket-display": {
+          "semanticObject": "HelpdeskTicket",
+          "action": "display",
+          "title": "AI Helpdesk Ticketing Portal",
+          "subTitle": "Create, track and resolve helpdesk tickets",
+          "icon": "sap-icon://incident",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
     }
   },
   "sap.ui": {
