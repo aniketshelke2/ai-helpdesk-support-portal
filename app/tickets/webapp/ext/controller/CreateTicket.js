@@ -58,7 +58,7 @@ sap.ui.define([
     categories.forEach(function (category) {
       oCategorySelect.addItem(new Item({
         key: category.ID,
-        text: category.name || category.categoryName || category.ID
+        text: category.name || category.ID
       }));
     });
   }
@@ -66,7 +66,7 @@ sap.ui.define([
   async function createTicket(payload) {
     const csrfToken = await getCsrfToken();
 
-    const response = await fetch(SERVICE_URL + "Tickets", {
+    const response = await fetch(SERVICE_URL + "createTicket", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -96,10 +96,7 @@ sap.ui.define([
   }
 
   return {
-    open: async function (oEvent) {
-      const oSource = oEvent.getSource();
-      const oModel = oSource.getModel();
-
+    open: async function () {
       const oTitleInput = new Input({
         placeholder: "Example: Laptop not working",
         maxLength: 120,
@@ -174,20 +171,20 @@ sap.ui.define([
               }
 
               await createTicket({
-                title,
-                description,
-                priority,
-                category_ID
+                title: title,
+                description: description,
+                priority: priority,
+                category_ID: category_ID
               });
 
               MessageToast.show("Ticket created successfully");
 
-              if (oModel && oModel.refresh) {
-                oModel.refresh();
-              }
-
               oDialog.close();
               oDialog.destroy();
+
+              setTimeout(function () {
+                window.location.reload();
+              }, 800);
             } catch (error) {
               MessageBox.error(error.message || "Ticket creation failed");
             }
