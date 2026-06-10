@@ -122,6 +122,13 @@
                       "visible": true,
                       "enabled": true,
                       "requiresSelection": false
+                    },
+                    "OpenDashboard": {
+                      "text": "Dashboard",
+                      "press": "helpdesk.ticket.tickets.ext.controller.Dashboard.open",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false
                     }
                   }
                 }
