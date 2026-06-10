@@ -114,6 +114,15 @@
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
                     "type": "ResponsiveTable"
+                  },
+                  "actions": {
+                    "CreateTicket": {
+                      "text": "Create Ticket",
+                      "press": "helpdesk.ticket.tickets.ext.controller.CreateTicket.open",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false
+                    }
                   }
                 }
               }
